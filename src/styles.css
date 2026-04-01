@@ -1,0 +1,49 @@
+:root {
+  --primary: #3fccc0;
+  --primary-dark: #1990a0;
+  --primary-light: #F5EDE6;
+  --accent: #71e8ec;
+  --accent-light: #F3E7DD;
+  --danger: #3a868b;
+  --danger-light: #F5DADA;
+  --warning: #C68642;
+  --bg: #FAF7F4;
+  --surface: #FFFFFF;
+  --surface-2: #F9F5F1;
+  --border: #E8DED6;
+  --text-primary: #233e39;
+  --text-secondary: #4e6e6b;
+  --text-muted: #91a8a5;
+  --font-body: 'Roboto', sans-serif;
+  --font-display: 'Roboto', sans-serif;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --header-height: 64px;
+  --sidebar-width: 300px;
+  --shadow-sm: 0 6px 16px rgba(62, 44, 35, 0.08);
+  --shadow-md: 0 14px 38px rgba(62, 44, 35, 0.08);
+  --shadow-lg: 0 18px 50px rgba(62, 44, 35, 0.12);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+button, input, select {
+  font: inherit;
+}
