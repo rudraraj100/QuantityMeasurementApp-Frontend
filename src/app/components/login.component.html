@@ -2,7 +2,7 @@
   <div class="auth-card">
     <div class="auth-logo">
       <div>
-        <div class="auth-logo-text">NaapToal</div>
+        <div class="auth-logo-text">Measurement Platform</div>
       </div>
     </div>
 
@@ -40,11 +40,22 @@
           <span class="field-error">{{ loginPassErr() }}</span>
         </div>
 
-        <button class="auth-btn" [disabled]="loginLoading()" (click)="onLogin()">
+        <button class="auth-btn" [disabled]="loginLoading() || googleLoading()" (click)="onLogin()">
           @if (loginLoading()) {
             <span class="spinner"></span>
           } @else {
             <span>Sign In</span>
+          }
+        </button>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <button class="auth-btn google-btn" [disabled]="loginLoading() || googleLoading()" (click)="continueWithGoogle()">
+          @if (googleLoading()) {
+            <span class="spinner dark"></span>
+          } @else {
+            <span class="google-mark">G</span>
+            <span>Continue with Google</span>
           }
         </button>
         <div class="auth-switch">Don't have an account? <a (click)="showSignup()">Create one</a></div>
@@ -79,7 +90,7 @@
               placeholder="Min 6 characters" autocomplete="new-password" [value]="signupPassword()"
               (input)="signupPassword.set($any($event.target).value)" (blur)="validateSignupBlur('password')" />
             <button class="eye-toggle" type="button" aria-label="Toggle password visibility" (click)="toggleSignupPassword()">
-              <span>{{ showSignupPassword() ? 'O_O' : 'X_X' }}</span>
+              <span>{{ showSignupPassword() ? 'X_X' : 'O_O' }}</span>
             </button>
           </div>
           <span class="field-error">{{ signupPassErr() }}</span>
@@ -96,7 +107,7 @@
           <span class="field-error">{{ signupMobileErr() }}</span>
         </div>
 
-        <button class="auth-btn" [disabled]="signupLoading()" (click)="onSignup()">
+        <button class="auth-btn" [disabled]="signupLoading() || googleLoading()" (click)="onSignup()">
           @if (signupLoading()) {
             <span class="spinner"></span>
           } @else {

@@ -1,14 +1,15 @@
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-import { SessionUser, User } from '../models/models';
+import { Injectable, signal } from '@angular/core';
+import { AuthResponse, SessionUser, User } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'quanment_user';
+  private readonly tokenKey = 'quanment_token';
 
-  constructor(private router: Router) {}
+  private readonly sessionUserSignal = signal<SessionUser | null>(this.readSessionUserFromStorage());
+  private readonly tokenSignal = signal<string | null>(localStorage.getItem(this.tokenKey));
 
-  getSessionUser(): SessionUser | null {
+  private readSessionUserFromStorage(): SessionUser | null {
     const raw = sessionStorage.getItem(this.storageKey);
     if (!raw) return null;
 
@@ -19,21 +20,37 @@ export class AuthService {
     }
   }
 
+  getSessionUser(): SessionUser | null {
+    return this.sessionUserSignal();
+  }
+
+  getToken(): string | null {
+    return this.tokenSignal();
+  }
+
   isLoggedIn(): boolean {
-    return this.getSessionUser() !== null;
+    return this.tokenSignal() !== null && this.sessionUserSignal() !== null;
   }
 
   storeSessionUser(user: Pick<User, 'id' | 'name' | 'email'>): void {
     if (user.id == null) return;
-    sessionStorage.setItem(
-      this.storageKey,
-      JSON.stringify({ id: user.id, name: user.name, email: user.email } satisfies SessionUser)
-    );
+
+    const sessionUser = { id: user.id, name: user.name, email: user.email } satisfies SessionUser;
+    sessionStorage.setItem(this.storageKey, JSON.stringify(sessionUser));
+    this.sessionUserSignal.set(sessionUser);
+  }
+
+  storeAuthSession(auth: Pick<AuthResponse, 'id' | 'name' | 'email' | 'token'>): void {
+    localStorage.setItem(this.tokenKey, auth.token);
+    this.tokenSignal.set(auth.token);
+    this.storeSessionUser({ id: auth.id, name: auth.name, email: auth.email });
   }
 
   logout(): void {
     sessionStorage.removeItem(this.storageKey);
-    void this.router.navigate(['/login']);
+    localStorage.removeItem(this.tokenKey);
+    this.sessionUserSignal.set(null);
+    this.tokenSignal.set(null);
   }
 
   getInitials(name: string): string {

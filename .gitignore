@@ -1,42 +1,46 @@
-# Node modules
+# Dependencies
 node_modules/
 
-# Angular build output
+# Build output
 dist/
 build/
+out-tsc/
 
-# Angular cache & Vite
+# Angular / Vite cache
 .angular/
 .vite/
 
-# TypeScript build files
+# TypeScript
 *.tsbuildinfo
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Environment files
 .env
 .env.local
 .env.*.local
 
-# Angular env overrides (optional)
+# Local Angular environment overrides
 src/environments/*.local.ts
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-
-# OS files
-.DS_Store
-Thumbs.db
 
 # Coverage
 coverage/
 
-# Temporary files
+# Temp files
 tmp/
 temp/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+.eslintcache
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini

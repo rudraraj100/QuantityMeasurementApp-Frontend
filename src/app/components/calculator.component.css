@@ -55,7 +55,8 @@
 }
 
 .history-chip,
-.logout-btn {
+.logout-btn,
+.login-btn {
   height: 40px;
   border: 1px solid rgba(255, 247, 240, 0.25);
   background: rgba(255, 255, 255, 0.06);
@@ -458,4 +459,5 @@
   .operator-buttons {
     flex-direction: row;
   }
+
 }

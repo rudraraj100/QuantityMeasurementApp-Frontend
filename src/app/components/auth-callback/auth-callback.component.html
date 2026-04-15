@@ -1,0 +1,12 @@
+<div class="callback-page">
+  <div class="callback-card">
+    @if (processing()) {
+      <div class="spinner"></div>
+      <h2>Signing you in…</h2>
+      <p>Please wait while we complete your Google login.</p>
+    } @else {
+      <h2>Sign-in failed</h2>
+      <p>{{ errorMessage() }}</p>
+    }
+  </div>
+</div>

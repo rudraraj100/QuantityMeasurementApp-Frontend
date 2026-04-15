@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/models';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class ApiService {
   private readonly baseUrl = environment.apiBaseUrl;
 
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('quanment_token');
 
     let headers = new HttpHeaders({
       'Content-Type': 'application/json'
@@ -32,7 +33,7 @@ export class ApiService {
     );
   }
 
-  async post<T>(endpoint: string, body: any): Promise<T> {
+  async post<T>(endpoint: string, body: unknown): Promise<T> {
     return await firstValueFrom(
       this.http.post<T>(`${this.baseUrl}${endpoint}`, body, {
         headers: this.getHeaders()
@@ -40,7 +41,7 @@ export class ApiService {
     );
   }
 
-  async put<T>(endpoint: string, body: any): Promise<T> {
+  async put<T>(endpoint: string, body: unknown): Promise<T> {
     return await firstValueFrom(
       this.http.put<T>(`${this.baseUrl}${endpoint}`, body, {
         headers: this.getHeaders()
@@ -56,18 +57,38 @@ export class ApiService {
     );
   }
 
-  async findUserByEmail(email: string): Promise<any | null> {
-  try {
-    return await this.get<any>(`/api/v1/users/email/${encodeURIComponent(email)}`);
-  } catch (error: any) {
-    if (error?.status === 404) {
-      return null;
-    }
-    throw error;
+  async login(payload: LoginRequest): Promise<AuthResponse> {
+    return await this.post<AuthResponse>('/auth/login', payload);
   }
-}
 
-async createUser(user: any): Promise<any> {
-  return await this.post<any>('/api/v1/users', user);
-}
+  async register(payload: RegisterRequest): Promise<AuthResponse> {
+    return await this.post<AuthResponse>('/auth/register', payload);
+  }
+
+  async getGoogleAuthSuccess(token: string): Promise<AuthResponse> {
+    return await this.get<AuthResponse>(`/auth/success?token=${encodeURIComponent(token)}`);
+  }
+
+  getGoogleLoginUrl(): string {
+    return `${this.baseUrl}/oauth2/authorization/google`;
+  }
+
+  async getCurrentUser(): Promise<User> {
+    return await this.get<User>('/auth/me');
+  }
+
+  async findUserByEmail(email: string): Promise<User | null> {
+    try {
+      return await this.get<User>(`/api/v1/users/email/${encodeURIComponent(email)}`);
+    } catch (error: any) {
+      if (error?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async createUser(user: User): Promise<User> {
+    return await this.post<User>('/api/v1/users', user);
+  }
 }

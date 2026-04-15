@@ -77,24 +77,26 @@ export class CalculatorComponent implements OnInit {
   mobileHistoryOpen = signal(false);
 
   readonly currentUnits = computed(() => this.unitsByType[this.selectedType()]);
+  readonly isLoggedIn = computed(() => this.auth.isLoggedIn());
+  readonly showHistoryPanel = computed(() => this.isLoggedIn() && this.mobileHistoryOpen());
 
   canCalculate(): boolean {
-  const fromVal =
-    this.fromValue !== null && this.fromValue !== undefined
-      ? String(this.fromValue).trim()
-      : '';
+    const fromVal =
+      this.fromValue !== null && this.fromValue !== undefined
+        ? String(this.fromValue).trim()
+        : '';
 
-  const toVal =
-    this.toValue !== null && this.toValue !== undefined
-      ? String(this.toValue).trim()
-      : '';
+    const toVal =
+      this.toValue !== null && this.toValue !== undefined
+        ? String(this.toValue).trim()
+        : '';
 
-  if (!fromVal) return false;
-  if (this.selectedAction() !== 'Conversion' && !toVal) return false;
-  if (!this.fromUnit || !this.toUnit) return false;
+    if (!fromVal) return false;
+    if (this.selectedAction() !== 'Conversion' && !toVal) return false;
+    if (!this.fromUnit || !this.toUnit) return false;
 
-  return true;
-}
+    return true;
+  }
 
   readonly resultDisplay = computed(() => {
     const res = this.result();
@@ -118,14 +120,14 @@ export class CalculatorComponent implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
-    const user = this.auth.getSessionUser();
-    if (!user) {
-      await this.router.navigate(['/login']);
-      return;
-    }
-
     this.setDefaultUnits();
-    await this.loadHistory();
+    this.mobileHistoryOpen.set(false);
+
+    if (this.isLoggedIn()) {
+      await this.loadHistory();
+    } else {
+      this.history.set([]);
+    }
   }
 
   get userInitials(): string {
@@ -149,7 +151,12 @@ export class CalculatorComponent implements OnInit {
     this.setDefaultUnits();
     this.result.set(null);
     this.error.set('');
-    this.loadHistory();
+
+    if (this.isLoggedIn()) {
+      void this.loadHistory();
+    } else {
+      this.history.set([]);
+    }
   }
 
   changeAction(action: ActionType): void {
@@ -182,12 +189,23 @@ export class CalculatorComponent implements OnInit {
   }
 
   toggleHistorySidebar(): void {
+    if (!this.isLoggedIn()) {
+      void this.router.navigate(['/login']);
+      return;
+    }
+
     this.mobileHistoryOpen.update(v => !v);
+  }
+
+  goToLogin(): void {
+    void this.router.navigate(['/login']);
   }
 
   logout(): void {
     this.auth.logout();
-    this.router.navigate(['/login']);
+    this.history.set([]);
+    this.mobileHistoryOpen.set(false);
+    void this.router.navigate(['/calculator']);
   }
 
   private mapType(type: MeasurementType): string {
@@ -230,34 +248,34 @@ export class CalculatorComponent implements OnInit {
   }
 
   async onCalculateClick(): Promise<void> {
-  const fromVal =
-    this.fromValue !== null && this.fromValue !== undefined
-      ? String(this.fromValue).trim()
-      : '';
+    const fromVal =
+      this.fromValue !== null && this.fromValue !== undefined
+        ? String(this.fromValue).trim()
+        : '';
 
-  const toVal =
-    this.toValue !== null && this.toValue !== undefined
-      ? String(this.toValue).trim()
-      : '';
+    const toVal =
+      this.toValue !== null && this.toValue !== undefined
+        ? String(this.toValue).trim()
+        : '';
 
-  if (!fromVal) {
-    this.error.set('Please enter FROM value.');
-    return;
+    if (!fromVal) {
+      this.error.set('Please enter FROM value.');
+      return;
+    }
+
+    if (this.selectedAction() !== 'Conversion' && !toVal) {
+      this.error.set('Please enter TO value.');
+      return;
+    }
+
+    if (!this.fromUnit || !this.toUnit) {
+      this.error.set('Please select units.');
+      return;
+    }
+
+    this.error.set('');
+    await this.calculate(this.getOperationFromUI());
   }
-
-  if (this.selectedAction() !== 'Conversion' && !toVal) {
-    this.error.set('Please enter TO value.');
-    return;
-  }
-
-  if (!this.fromUnit || !this.toUnit) {
-    this.error.set('Please select units.');
-    return;
-  }
-
-  this.error.set('');
-  await this.calculate(this.getOperationFromUI());
-}
 
   async calculate(operation: string): Promise<void> {
     this.error.set('');
@@ -301,8 +319,10 @@ export class CalculatorComponent implements OnInit {
       }
 
       this.result.set(response);
-      await this.loadHistory();
 
+      if (this.isLoggedIn()) {
+        await this.loadHistory();
+      }
     } catch (err: any) {
       console.error(err);
       this.error.set(err?.error?.message || 'Something went wrong');
@@ -310,6 +330,12 @@ export class CalculatorComponent implements OnInit {
   }
 
   async loadHistory(): Promise<void> {
+    if (!this.isLoggedIn()) {
+      this.history.set([]);
+      this.mobileHistoryOpen.set(false);
+      return;
+    }
+
     try {
       const type = this.mapType(this.selectedType());
       const response = await this.api.get<any[]>(`/api/v1/quantities/history/type/${type}`);

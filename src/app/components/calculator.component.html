@@ -1,29 +1,36 @@
 <div class="page-shell">
   <header class="topbar">
     <div class="brand-wrap">
-      <span class="brand-icon"><img src="assets/QuantityMeasurementLogo.png" alt="logo" alt="logo"></span>
+      <span class="brand-icon"><img src="/assets/Quantity-Measurement-Logo.png" alt="logo"></span>
       <span class="brand-text">NaapToal</span>
     </div>
 
     <div class="topbar-right">
       <button class="history-chip" type="button" (click)="toggleHistorySidebar()">
         <span>🕒</span>
-        <span>History</span>
+        <span>{{ isLoggedIn() ? 'History' : 'Login for History' }}</span>
       </button>
 
-      <div class="user-chip">
-        <div class="avatar">{{ userInitials }}</div>
-        <span class="user-name">{{ userFirstName }}</span>
-      </div>
+      @if (isLoggedIn()) {
+        <div class="user-chip">
+          <div class="avatar">{{ userInitials }}</div>
+          <span class="user-name">{{ userFirstName }}</span>
+        </div>
 
-      <button class="logout-btn" type="button" (click)="logout()">
-        <span>↪</span>
-        <span>Logout</span>
-      </button>
+        <button class="logout-btn" type="button" (click)="logout()">
+          <span>↪</span>
+          <span>Logout</span>
+        </button>
+      } @else {
+        <button class="login-btn" type="button" (click)="goToLogin()">
+          <span>👤</span>
+          <span>Login / Sign Up</span>
+        </button>
+      }
     </div>
   </header>
 
-  <main class="page-body">
+  <main class="page-body" [class.with-history]="showHistoryPanel()">
     <section class="calculator-card">
       <div class="section-label">CHOOSE TYPE</div>
       <div class="type-grid">
@@ -106,12 +113,12 @@
       </div>
 
       <button
-  type="button"
-  class="calculate-btn"
-  (click)="onCalculateClick()">
-  <span>Calculate</span>
-  <span class="calc-icon">✧</span>
-</button>
+        type="button"
+        class="calculate-btn"
+        (click)="onCalculateClick()">
+        <span>Calculate</span>
+        <span class="calc-icon">✧</span>
+      </button>
 
       <div class="result-box" [class.has-error]="!!error()">
         @if (!result() && !error()) {
@@ -131,28 +138,36 @@
         }
       </div>
 
+      @if (!isLoggedIn()) {
+        <div class="guest-note">
+          You can use the dashboard without logging in. Sign in only if you want to view your personal history.
+        </div>
+      }
+
       <button type="button" class="reset-btn" (click)="resetForm()">↺ Reset Form</button>
     </section>
 
-    <aside class="history-panel" [class.open]="mobileHistoryOpen()">
-      <div class="history-head">
-        <h3>History</h3>
-        <button type="button" class="clear-btn" (click)="clearHistory()">Clear All</button>
-      </div>
+    @if (showHistoryPanel()) {
+      <aside class="history-panel">
+        <div class="history-head">
+          <h3>History</h3>
+          <button type="button" class="clear-btn" (click)="clearHistory()">Clear All</button>
+        </div>
 
-      <div class="history-list">
-        @if (history().length === 0) {
-          <div class="history-empty">No calculations yet.</div>
-        } @else {
-          @for (record of history(); track record.id) {
-            <div class="history-item">
-              <div class="history-item-top">{{ record.operation }}</div>
-              <div class="history-item-expression">{{ formatHistoryExpression(record) }}</div>
-              <div class="history-item-result">{{ formatHistoryResult(record) }}</div>
-            </div>
+        <div class="history-list">
+          @if (history().length === 0) {
+            <div class="history-empty">No calculations yet.</div>
+          } @else {
+            @for (record of history(); track record.id) {
+              <div class="history-item">
+                <div class="history-item-top">{{ record.operation }}</div>
+                <div class="history-item-expression">{{ formatHistoryExpression(record) }}</div>
+                <div class="history-item-result">{{ formatHistoryResult(record) }}</div>
+              </div>
+            }
           }
-        }
-      </div>
-    </aside>
+        </div>
+      </aside>
+    }
   </main>
 </div>

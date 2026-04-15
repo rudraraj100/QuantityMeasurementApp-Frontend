@@ -1,4 +1,3 @@
-
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +24,7 @@ export class LoginComponent {
   readonly showSignupPassword = signal(false);
   readonly loginLoading = signal(false);
   readonly signupLoading = signal(false);
+  readonly googleLoading = signal(false);
 
   readonly loginEmail = signal('');
   readonly loginPassword = signal('');
@@ -71,6 +71,10 @@ export class LoginComponent {
     value: string
   ): void {
     this[field].set(value);
+  }
+
+  private extractErrorMessage(error: any, fallback: string): string {
+    return error?.error?.message || error?.error?.error || fallback;
   }
 
   validateLoginBlur(field: 'email' | 'password'): void {
@@ -129,22 +133,17 @@ export class LoginComponent {
 
     this.loginLoading.set(true);
     try {
-      const user = await this.api.findUserByEmail(email);
-
-      if (!user || user.password !== password) {
-        this.toast.show('Invalid email or password', 'error');
-        this.loginPassErr.set('Incorrect credentials');
-        return;
-      }
-
-      this.auth.storeSessionUser(user);
-      this.toast.show(`Welcome back, ${user.name}! 🎉`, 'success');
+      const authResponse = await this.api.login({ email, password });
+      this.auth.storeAuthSession(authResponse);
+      this.toast.show(`Welcome back, ${authResponse.name}! 🎉`, 'success');
 
       setTimeout(() => {
         this.router.navigate(['/calculator']);
       }, 1000);
-    } catch {
-      this.toast.show('Server error. Check if backend is running.', 'error');
+    } catch (error: any) {
+      const message = this.extractErrorMessage(error, 'Unable to sign in. Check if backend is running.');
+      this.toast.show(message, 'error');
+      this.loginPassErr.set(message.includes('Google') ? '' : 'Incorrect credentials');
     } finally {
       this.loginLoading.set(false);
     }
@@ -198,30 +197,35 @@ export class LoginComponent {
 
     this.signupLoading.set(true);
     try {
-      const existing = await this.api.findUserByEmail(email);
-
-      if (existing) {
-        this.signupEmailErr.set('This email is already registered');
-        return;
-      }
-
-      const newUser = await this.api.createUser({
+      await this.api.register({
         name,
         email,
         password,
         mobile
       });
 
-      this.auth.storeSessionUser(newUser);
-      this.toast.show(`Account created! Welcome, ${newUser.name} 🎉`, 'success');
+      this.signupName.set('');
+      this.signupEmail.set('');
+      this.signupPassword.set('');
+      this.signupMobile.set('');
+      this.loginEmail.set(email);
+      this.loginPassword.set('');
+      this.activeTab.set('login');
 
-      setTimeout(() => {
-        this.router.navigate(['/calculator']);
-      }, 1200);
-    } catch {
-      this.toast.show('Server error. Check if backend is running.', 'error');
+      this.toast.show('Account created successfully. Please sign in to continue. 🎉', 'success');
+    } catch (error: any) {
+      const message = this.extractErrorMessage(error, 'Unable to create account. Check if backend is running.');
+      if (message.toLowerCase().includes('already')) {
+        this.signupEmailErr.set('This email is already registered');
+      }
+      this.toast.show(message, 'error');
     } finally {
       this.signupLoading.set(false);
     }
+  }
+
+  continueWithGoogle(): void {
+    this.googleLoading.set(true);
+    window.location.href = this.api.getGoogleLoginUrl();
   }
 }
