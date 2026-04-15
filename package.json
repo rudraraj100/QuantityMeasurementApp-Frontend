@@ -1,11 +1,11 @@
-
-  {
+{
   "name": "quanment-angular",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "ng serve",
-    "build": "ng build",
+    "dev": "ng serve",
+    "start": "node -e \"const { spawn } = require('child_process'); const port = process.env.PORT || '4200'; const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx'; const child = spawn(cmd, ['ng', 'serve', '--host', '0.0.0.0', '--port', port], { stdio: 'inherit' }); child.on('exit', code => process.exit(code ?? 0));\"",
+    "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {
