@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ng serve",
     "build": "ng build --configuration production",
-    "start": "npx http-server dist/quanment-angular/browser -p $PORT -a 0.0.0.0",
+    "start": "npx serve -s dist/quanment-angular/browser -l $PORT",
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {
